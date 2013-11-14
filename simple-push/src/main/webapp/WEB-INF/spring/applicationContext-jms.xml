@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop-3.0.xsd 
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-3.0.xsd"
+	xmlns:p="http://www.springframework.org/schema/p" default-lazy-init="true"
+	default-autowire="byName">
+
+
+	<bean id="listenerContainer"
+		class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="destination" ref="topicDestination" />
+		<property name="messageListener" ref="messageListener" />
+		<property name="sessionTransacted" value="false" />
+
+	</bean>
+
+	<bean id="messageListener"
+		class="org.springframework.jms.listener.adapter.MessageListenerAdapter">
+		<constructor-arg>
+			<ref bean="messageExecutor" />
+		</constructor-arg>
+		<property name="defaultListenerMethod" value="execute" />
+		<property name="messageConverter" ref="messageConverter" />
+	</bean>
+
+	<bean id="messageExecutor" class="com.sohu.video.simplepush.message.MessageConsumer" />
+	<bean id="messageConverter" class="com.sohu.video.simplepush.message.MessageConverterImpl" />
+
+	<bean id="topicDestination" class="org.apache.activemq.command.ActiveMQTopic">
+		<constructor-arg value="TOPIC.SIMPLEPUSH" />
+	</bean>
+
+	<bean id="connectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory"
+		destroy-method="stop" init-method="start">
+		<property name="connectionFactory">
+			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
+				<property name="brokerURL"
+					value="failover:(tcp://10.11.132.36:61616)?maxReconnectAttempts=3" />
+			</bean>
+		</property>
+
+	</bean>
+
+</beans>
