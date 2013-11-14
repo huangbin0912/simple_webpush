@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <title>SimpleWebPush Demo</title>
+    <script type="text/javascript" src="/org/cometd.js"></script>
+    <script type="text/javascript" src="/jquery/jquery-1.8.1.js"></script>
+    <script type="text/javascript" src="/jquery/jquery.cometd.js"></script>
+	<script type="text/javascript" src="/json2.js"></script>
+	<script type="text/javascript" src="/webpush.js"></script>
+    <script type="text/javascript">
+
+//var configuration = {
+//"http://127.0.0.1:8080",
+//	urls : ["http://127.0.0.1:8080/"],
+//	topic : "a-topic",
+//	group : 10
+//};
+
+var configuration;
+
+function pushcallback(data){
+	configuration = data;
+}
+
+	
+(function($)
+{
+    $(document).ready(function()
+    {
+		$.ajax({
+        	url:'http://127.0.0.1:8080/simplepush/d/q/a-topic/pushcallback.do',
+            dataType:"jsonp",
+            jsonpCallback:"pushcallback"
+        });
+
+		var webpush;
+		
+
+        $('#join').click(j);
+	    $('#leave').click(l);
+		
+		function j(){
+			$("#responses").html("");
+			webpush = new com.sohu.video.WebPush(configuration);
+			webpush.receive = r;
+			webpush.join();		
+		}
+		
+		function l(){
+			if(webpush){
+				webpush.leave();
+				webpush = null;
+			}
+			
+		}
+
+		
+		function r(msg)
+		{
+		   var c = $("#responses").html();
+		   if(msg && msg.data){
+				$("#responses").html(c + " " + JSON.stringify(msg.data) + "\n");
+		   }
+		};
+		
+		$(window).unload(function(){
+			if(webpush){
+				webpush.CometD.disconnect();
+			}
+		});
+
+		
+    });
+
+
+})(jQuery);
+
+	
+       
+    </script>
+</head>
+<body>
+
+<h1>SimpleWebPush Demo</h1>
+
+<p>
+    <input id="join" class="button" type="button" value="Join"/>
+	<input id="leave" class="button" type="button" value="Leave"/>
+</p>
+
+<pre id="responses"></pre>
+</body>
+</html>
